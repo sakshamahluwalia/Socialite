@@ -1,0 +1,28 @@
+<% include ../partials/header %>
+
+<div class="table-responsive col-4">
+  <table class="table">
+    
+    <thead>
+        <tr>
+          <th scope="col">Name</th>
+        </tr>
+  </thead>
+  <tbody>
+      <% users.forEach(function(user) { %>
+        <tr>
+          <td><%= user.username %></td>
+          <td align="right">
+              <form action="/connect/<%= user._id %>" method="POST">
+                  <input class="btn btn-warning"type="submit" value="Add Friend">
+              </form>
+          </td>
+        </tr>
+      <% }); %>
+  </tbody>
+    
+    
+  </table>
+</div>
+
+<% include ../partials/footer %>
