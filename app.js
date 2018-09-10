@@ -53,19 +53,46 @@ app.get("/talk", function(req, res) {
 
 // Creating a convo between two people (Suppose the function recieves the info about the two people)
 app.post("/talk", function(req, res) {
-    var Sender, Reciever, newConversation;
+    var sender, reciever, newConversation;
     
-    User.find( {"username": {$in: [req.body.username, req.user.username] } }, function(err, people) {
-        Sender = people[1];
-        Reciever = people[0];
-        newConversation = { sender: Sender, reciever: Reciever, message: req.body.message, time: new Date().getHours()};
-        Conversation.create(newConversation, function(err, newlyCreated) {
-            User.findByIdAndUpdate(Reciever._id, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedSender) {
-                updatedSender.save();
-            });
-            User.findByIdAndUpdate(req.user._id, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedSender) {
-                updatedSender.save();
-            });
+    User.findById(req.user._id).populate(["conversations"]).exec(function(err, Sender) {
+        sender = Sender;
+        // console.log(sender); // this works
+        User.find({"username": req.body.username}).populate(["conversations"]).exec(function(err, Reciever) {
+            reciever = Reciever[0];
+            if (Sender.conversations.length < 1) {
+                // console.log("no convo case trig\n");
+                    newConversation = { sender: Sender, reciever: reciever, messages: [], time: new Date()};
+                    newConversation.messages.push(req.body.message);
+                    // console.log("convo is: \n" + newConversation + "\n"); // this works
+                    Conversation.create(newConversation, function(err, newlyCreated) {
+                        if (err) {
+                            console.log("\n error is:" + err + "\n");
+                        }
+                        // console.log("convo is: \n" + newlyCreated + "\n"); // this works
+                        User.findByIdAndUpdate(sender._id, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedSender) {
+                            updatedSender.save();
+                            // console.log("final callback for sender is:\n "+ updatedSender +"\n"); // this works
+                            User.update({username: req.body.username}, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedReciever) {
+                                // console.log("Last callback and recievr id is:\n "+ updatedReciever + "\n");
+                            });
+                        });
+                    });
+            } else {
+                console.log("convo exists case trig");
+                sender.conversations.forEach(function(conversation) {
+                    Conversation.findById(conversation._id).populate(["sender", "reciever"]).exec(function(err, convo) {
+                        // console.log(convo + "\n"); // this works
+                        // console.log("conversation.reciever.id: " + convo.reciever._id + "reciever id: " + reciever._id); //these two are the same.
+                        if (convo.reciever._id.equals(reciever._id) || convo.sender._id.equals(reciever._id)) {
+                            Conversation.findByIdAndUpdate(convo._id, {$push: {messages: req.body.message}}, {new: true}, function(err, updatedConversation) {
+                                updatedConversation.save();
+                                console.log("Last callback if the convos exist and the updated convo is: \n"+updatedConversation);
+                            });
+                        }
+                    });
+                });
+            }
         });
     });
 });
