@@ -7,4 +7,4 @@ var MessageSchema = new mongoose.Schema({
     time: Date
 });
 
-module.exports = mongoose.model("Conversation", MessageSchema);
+module.exports = mongoose.model("Message", MessageSchema);

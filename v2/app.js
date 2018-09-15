@@ -40,6 +40,10 @@ app.get("/", function(req, res) {
     res.render("landing");
 });
 
+app.get("/index", function(req, res) {
+    res.render("home");
+})
+
 // this page shows the contact and the message to send.
 app.get("/talk", function(req, res) {
     User.findById(req.user._id).populate(["contacts", "conversations"]).exec(function(err, user) {
@@ -144,7 +148,7 @@ app.get("/login", function(req, res) {
 
 app.post("/login", passport.authenticate("local", 
     {
-        successRedirect: "/",
+        successRedirect: "/index",
         failureRedirect: "/login"
     }));
 
