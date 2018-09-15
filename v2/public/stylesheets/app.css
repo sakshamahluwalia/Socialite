@@ -1,0 +1,29 @@
+/*Sign in page css*/ 
+.jumbotron {
+    width: 100%;
+    height: 91.5%;
+    margin-bottom: 0
+}
+
+#signinpage form {
+    width: 30%; 
+    margin: 25px auto;
+}
+
+/* Convo page css*/
+#convoPage {
+    margin: 25px auto;
+}
+
+#convoPage form {
+    float: right;
+}
+
+.messageBox {
+    width: 500px;
+    height: 500px;
+}
+
+.invis {
+    display: none;
+}

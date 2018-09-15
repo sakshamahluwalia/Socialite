@@ -51,24 +51,17 @@
     </div>
   </div>
   <div class="col-sm-3 col-sm-offset-4 frame">
-    <ul id="chat"></ul>
     <% user.conversations.forEach(function(convo) { %>
+        <ul id="chat"> <%= convo.receiver %> </ul>
         <li style="width:100%">
-        <% if (convo.sender == user._id) { %>
-        
-                <div class="msj macro"> 
-                    <div class="text text-l"> 
- 
-        <% } else { %>
-                <div class="msj-rta macro"> 
-                    <div class="text text-r"> 
-        
-        <% } %>
-                            <p> <%= convo.messages %></p> 
-                    <p><small> <%= convo.date %> </small></p> 
-                </div> 
-            </div>
+          <% convo.messages.forEach(function(message) { %>
+          
+            <p> <%= message %> </p> 
+   
+          <% }); %>
+          <p><small> <%= convo.date %> </small></p> 
         </li>
-        <% }); %>
+    <% }); %>
+  </div>
 
 <% include ../partials/footer %>

@@ -1,0 +1,67 @@
+<% include ../partials/header %>
+
+<div class="container" id="convoPage">
+  <div class="row">
+    <div class="table-responsive col-4">
+      <table class="table">
+        
+        <thead>
+            <tr>
+              <th scope="col">Name</th>
+            </tr>
+      </thead>
+      <tbody>
+          <% user.contacts.forEach(function(user) { %>
+            <tr>
+              <td><%= user.username %></td>
+              <td class="invis"><%= user._id %></td>
+              <td align="right">
+                <input class="btn btn-warning toMessage" type="submit" value="Message">
+              </td>
+            </tr>
+          <% }); %>
+      </tbody>
+      </table>
+    </div>
+    
+    <div class="col-8">
+      <form action="/talk" method="POST">
+        
+        <div class="form-group row">
+            <div class="col-sm-12">
+                <input id="receiver" name="id" type="text-box">
+            </div>
+        </div>
+        
+        <div class="form-group row">
+            <div class="col-sm-12">
+                <textarea name="message" rows="4" cols="50"></textarea>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-12">
+                <input type="submit" class="btn btn-warning">
+            </div>
+        </div>   
+        
+        
+      </form>
+    
+    </div>
+  </div>
+  <div class="col-sm-3 col-sm-offset-4 frame">
+    <% user.conversations.forEach(function(convo) { %>
+        <ul id="chat"> <%= convo.receiver %> </ul>
+        <li style="width:100%">
+          <% convo.messages.forEach(function(message) { %>
+          
+            <p> <%= message %> </p> 
+   
+          <% }); %>
+          <p><small> <%= convo.date %> </small></p> 
+        </li>
+    <% }); %>
+  </div>
+
+<% include ../partials/footer %>
