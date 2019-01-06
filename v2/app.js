@@ -5,6 +5,7 @@ var express         = require("express"),
     passport        = require("passport"),
     LocalStrategy   = require("passport-local"),
     User            = require("./models/user"),
+    Message         = require("./models/message"),
     Conversation    = require("./models/conversation");
     
 
@@ -40,9 +41,50 @@ app.get("/", function(req, res) {
     res.render("landing");
 });
 
-app.get("/index", function(req, res) {
+app.get("/home", function(req, res) {
     res.render("home");
-})
+});
+
+app.get("/populateConvo/:person", function(req, res) {
+    
+    // console.log(req.url); // This will give us the name being searched.
+    var person = req.url.substring(16);
+    console.log(person);
+    
+    // query the database and send the data using send().
+    User.find({"username": person}).populate(["conversations"]).exec(function(err, reciever) {
+        console.log(reciever);
+        Conversation.find({ $or:
+            [   
+                {"reciever": reciever._id, "sender": req.user._id},
+                {"sender": reciever._id, "reciever": req.user._id}
+            ]
+        }, function(err, convo) {
+            console.log(convo);
+            res.send(convo);
+        });
+    });
+}); 
+
+// this page serves as a test page for conversations.
+// app.get("/talk", function(req, res) {
+    
+//     // find the user using the id
+//     User.findById(req.user.id).populate(["contacts", "conversations"]).exec(function(err, user) {
+//         user.conversations.forEach(function(convo) {
+//             Conversation.findById(convo._id).populate(["messages"]).exec(function(err, conversation) {
+//                 // populate sender and reciever.
+//                 conversation.messages.forEach(function(message) {
+//                     Message.findById(message._id).populate(["sender", "reciever"]).exec(function(err, fullMessage) {
+                        
+//                     });
+//                 });
+//             });
+//         });
+//         // res.render("test", {User: user});
+//         res.render("social/convo", {user: user});
+//     });
+// });
 
 // this page shows the contact and the message to send.
 app.get("/talk", function(req, res) {
@@ -56,60 +98,79 @@ app.get("/talk", function(req, res) {
 });
 
 app.post("/talk", function(req, res) {
-    var sender, reciever, newConversation;
-
+    var sender, reciever, newMessage, newConversation;
+    
     // find the sender and populate its conversations.
-    User.findById(req.user._id).populate(["conversations"]).exec(function(err, Sender) {
-        sender = Sender;
+	User.findById(req.user._id).populate(["conversations"]).exec(function(err, Sender) { 
+		sender = Sender;
 
-        // find the reciever and populate its conversations.
+		// find the reciever and populate its conversations.
         User.findById(req.body.id).populate(["conversations"]).exec(function(err, Reciever) {
             reciever = Reciever;
+            
+		    newMessage = { sender: sender, reciever: reciever, body: req.body.message, time: new Date()};
 
-            // check if there exists a conversation between the reciever and sender.
-            Conversation.find({ $or: 
-                [   
-                    {"reciever": reciever._id, "sender": sender._id},
-                    {"sender": reciever._id, "reciever": sender._id}
-                ]
-            }, function(err, convo) {
+		    // Create a new message.
+		    Message.create(newMessage, function(err, newlyCreatedMessage) {
+		        newlyCreatedMessage.save();
+		        if (err) {
+		            console.log("mssg error " + err);
+		        }
+		        
+		        console.log("New mssg is : \n" + newlyCreatedMessage);
 
-                if (err) {
-                    console.log("\n error is:" + err + "\n");
-                } else {
+	            // check if there exists a conversation between the reciever and sender.
+	            Conversation.find({ participants: [reciever, sender] }, function(err, convo) {
 
+	                if (err) {
+	                    console.log("\n error is:" + err + "\n");
+	                }
+	                
+	                console.log(convo);
                     // convo is not in the records. Make a new convo and update database.
                     if (convo.length == 0) {
 
-                        newConversation = { sender: Sender, reciever: reciever, messages: [], time: new Date()};
-                        newConversation.messages.push(req.body.message);
+                        newConversation = { participants: [sender, reciever], time: new Date};
                         
-                        Conversation.create(newConversation, function(err, newlyCreated) {
-
+                        console.log(newConversation);
+                        
+                        Conversation.create(newConversation, function(err, newlyCreatedConversation) {
+                            // newlyCreatedConversation.participants.push(sender);
+                            // newlyCreatedConversation.participants.push(reciever);
+                            newlyCreatedConversation.messages.push(newMessage.id);
+                            newlyCreatedConversation.save();
+                            
+                            console.log("new convo is: " + newlyCreatedConversation);
+                            
                             if (err) {
                                 console.log("\n error creating convo:" + err + "\n");
                             }
 
                             // update the sender and reciever.
-                            User.findByIdAndUpdate(sender._id, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedSender) {
+                            User.findByIdAndUpdate(sender._id, {$push: {conversations: newlyCreatedConversation}}, {new: true}, function(err, updatedSender) {
                                 updatedSender.save();
 
-                                User.findByIdAndUpdate(reciever._id, {$push: {conversations: newlyCreated}}, {new: true}, function(err, updatedReciever) {
+                                User.findByIdAndUpdate(reciever._id, {$push: {conversations: newlyCreatedConversation}}, {new: true}, function(err, updatedReciever) {
                                     updatedReciever.save();
                                 });
 
                             });
                         });
+                        
                     } else { 
                         // this should return a unique convo between the two users.
-                        Conversation.findByIdAndUpdate(convo[0]._id, {$push: {messages: req.body.message}}, {new: true}, function(err, updatedConversation) {
+                        Conversation.findByIdAndUpdate(convo[0]._id, {$push: {messages: newlyCreatedMessage}}, {new: true}, function(err, updatedConversation) {
+                            console.log(updatedConversation);
                             updatedConversation.save();
                         });
                     }
-                }
-            });
+	            });
+
+		    });
+
         });
-    });
+
+	});
     res.redirect("/talk");
 });
 
@@ -124,7 +185,7 @@ app.get("/connect", function(req, res) {
     });
 });
 
-
+// This route adds person A to person B and vice versa.
 app.post("/connect/:UserID", function(req, res) {
     User.find( { _id : {$in: [req.params.UserID, req.user._id] } }, function(err, people) {
         var Sender = people[1];
@@ -135,20 +196,19 @@ app.post("/connect/:UserID", function(req, res) {
         User.findByIdAndUpdate(Reciever._id, {$push: {contacts: Sender}} , {new: true}, function(err, updatedSender) {
             updatedSender.save();
         });
-        res.render("landing");
+        res.render("home");
     });
 });
-
-
 
 // The login page route and logic routes
 app.get("/login", function(req, res) {
     res.render("login");
 });
 
+// This route handle the log in.
 app.post("/login", passport.authenticate("local", 
     {
-        successRedirect: "/index",
+        successRedirect: "/home",
         failureRedirect: "/login"
     }));
 
@@ -165,7 +225,7 @@ app.post("/register", function(req, res) {
            return res.render("register");
        }
        passport.authenticate("local")(req, res, function() { //this line will call the serializer and deserializer method of passport.
-           res.redirect("/");
+           res.redirect("/home");
        });
    });
 });
@@ -180,8 +240,3 @@ app.get("/logout", function(req, res){
 app.listen(process.env.PORT, process.env.IP, function() {
    console.log("The Socialite Server is live!");
 });
-
-// todo
-// Need to make a page to show prospectives and add logic to add Users in their contacts, Dont forget to remove the User from the Prospectives.
-// Add a searchbar to add Users.
-// dont show all the Users in the Add friends page.
