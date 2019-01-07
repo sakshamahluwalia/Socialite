@@ -86,6 +86,21 @@ function loadDoc(convo) {
   xhttp.open("GET", "/searching?Cname="+convo, true);
   xhttp.send();
 }
+
+// function loadConvo(reciever) {
+//   var xhttp = new XMLHttpRequest();
+//   var body = document.querySelector("#mssgbody").val();
+//   xhttp.onreadystatechange = function() {
+//     if (this.readyState == 4 && this.status == 200) {
+//       var html = $.parseHTML(this.responseText);
+//       var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
+//       $(".oldmesgs").html(newConvo);
+//     }
+//   };
+//   xhttp.open("POST", "/talk?id="+reciever+"&message=", true);
+//   xhttp.send();
+// }
+
 </script>
 
 
