@@ -53,10 +53,24 @@ app.get("/talk", function(req, res) {
             console.log(err);
         } else {
             if (convoId == undefined) {
+                if (user.conversations.length < 1) {
+                    User.findById(user._id).populate(["contacts"]).exec(function(err, newUser) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            // console.log("new user is : " + newUser);
+                            res.render("social/conversation", {user: newUser, conversation: convo});
+                        }
+                    });
+                } else {
+                    
+                }
                 convo = user.conversations[0];
+                res.render("social/conversation", {user: user, conversation: convo});
+
                 
                 // console.log("final convo is: "+ convoId + "\n" + convo);
-                res.render("social/conversation", {user: user, conversation: convo});
+                // res.render("social/conversation", {user: user, conversation: convo});
                 
             } else {
                 Conversation.findById(convoId, function(err, conversation) {
@@ -75,7 +89,7 @@ app.get("/talk", function(req, res) {
 
 // This route handles messaging functionality.
 app.post("/talk", function(req, res) {
-    
+    // console.log(req);
     var sender, reciever, newMessage, newConversation;
     
     // find the sender and populate its conversations.
@@ -83,7 +97,7 @@ app.post("/talk", function(req, res) {
 		sender = Sender;
 
 		// find the reciever and populate its conversations.
-        User.findById(req.query.id).populate(["conversations"]).exec(function(err, Reciever) {
+        User.findById(req.body.recieverId).populate(["conversations"]).exec(function(err, Reciever) {
             reciever = Reciever;
             
 		    newMessage = { sender: sender, reciever: reciever, body: req.body.message, time: new Date()};
@@ -224,8 +238,10 @@ app.get("/logout", function(req, res){
 // This route gathers and prepares data to send forward to talk.
 app.get("/:searching", function(req, res) {
 // _parsedUrl.Url.query => fname=Henry
-    var string = encodeURIComponent(req._parsedUrl.query.substring(6));
-    res.redirect("/talk?convo="+string);
+    if (req._parsedUrl.query) {
+        var string = encodeURIComponent(req._parsedUrl.query.substring(6));
+        res.redirect("/talk?convo="+string);
+    }
 });
 
 
