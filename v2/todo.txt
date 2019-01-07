@@ -1,2 +1,3 @@
-fix the test.ejs to show the new conversation. I got the route working see if we can 
-get the convo as response text if so change the html using javascript.
+Next Steps:
+1. Upgrade the search bar on \talk to make a new convo with a person who we searched for and feed it back to the page.
+2. Check if we stay on the same convo after sending a message to it.

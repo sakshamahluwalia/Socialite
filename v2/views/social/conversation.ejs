@@ -29,19 +29,6 @@
                   </div>
                 </div>
               </div>
-              <% }); } else { %>
-              
-              <% user.contacts.forEach(function(contact) { %>
-              
-              <div class="chat_list active_chat">
-                <div class="chat_people">
-                  <div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-                  <div class="chat_ib">
-                    <h5> <%= contact.username %></h5>
-                    <button onclick="loadContact('<%=contact._id%>')">Message</button>
-                  </div>
-                </div>
-              </div>
               <% }); } %>
               
 
@@ -83,14 +70,6 @@
                   
                 </div>
               </div>
-          <% } else { %>
-              <div class="type_msg">
-                <div class="input_msg_write">
-                  
-                    <input id="mssgbody" type="textarea" name="message" class="write_msg" placeholder="Type a message" />
-                  
-                </div>
-              </div>
           <% } %>
               
       </div>
@@ -98,6 +77,7 @@
 </div>
 
 <script>
+// this method is responsible for switching convos
 function loadDoc(convo) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -113,6 +93,7 @@ function loadDoc(convo) {
   xhttp.send();
 }
 
+// this method is responsible for updating convos
 function loadConvo(conversationId, recieverId) {
   var body = document.querySelector("#mssgbody");
   var xhr = new XMLHttpRequest();
@@ -125,8 +106,9 @@ function loadConvo(conversationId, recieverId) {
       if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
           // Request finished. Do processing here.
         var html = $.parseHTML(this.responseText);
-        var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
-        // console.log(newConvo);
+        console.log(html);
+        var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[5];
+        console.log(newConvo);
         $(".oldmesgs").html(newConvo);
         body.value = "";
       }
@@ -134,28 +116,28 @@ function loadConvo(conversationId, recieverId) {
   xhr.send("convoId="+conversationId+"&recieverId="+recieverId+"&message="+body.value);
 }
 
-function loadContact(recieverId) {
-  var body = document.querySelector("#mssgbody");
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", '/talk', true);
+// function loadContact(recieverId) {
+//   var body = document.querySelector("#mssgbody");
+//   $(".type_msg").remove()
+//   var xhr = new XMLHttpRequest();
+//   xhr.open("POST", '/talk', true);
   
-  //Send the proper header information along with the request
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+//   //Send the proper header information along with the request
+//   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   
-  xhr.onreadystatechange = function() { // Call a function when the state changes.
-      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-          // Request finished. Do processing here.
-        var html = $.parseHTML(this.responseText);
-        var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
-        console.log(newConvo);
-        $(".oldmesgs").html(newConvo);
-        body.value = "";
-      }
-  }
-  xhr.send("recieverId="+recieverId+"&message="+body.value);
-}
-
-
+//   xhr.onreadystatechange = function() { // Call a function when the state changes.
+//       if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+//           // Request finished. Do processing here.
+//         var html = $.parseHTML(this.responseText);
+//         var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
+//         // console.log(newConvo);
+        
+//         $(".oldmesgs").html(newConvo);
+//         body.value = "";
+//       }
+//   }
+//   xhr.send("recieverId="+recieverId+"&message="+body.value);
+// }
 </script>
 
 

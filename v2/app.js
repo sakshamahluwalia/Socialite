@@ -53,18 +53,7 @@ app.get("/talk", function(req, res) {
             console.log(err);
         } else {
             if (convoId == undefined) {
-                if (user.conversations.length < 1) {
-                    User.findById(user._id).populate(["contacts"]).exec(function(err, newUser) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            // console.log("new user is : " + newUser);
-                            res.render("social/conversation", {user: newUser, conversation: convo});
-                        }
-                    });
-                } else {
-                    
-                }
+
                 convo = user.conversations[0];
                 res.render("social/conversation", {user: user, conversation: convo});
 
