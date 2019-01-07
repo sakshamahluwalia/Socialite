@@ -1,4 +1,4 @@
-<% include ./navbars/standardnavbar %>
+<% include ../navbars/standardnavbar %>
 
 <div class="container">
         
@@ -57,11 +57,13 @@
                 <% } }); %>
       
               </div>
-                
+
               <div class="type_msg">
                 <div class="input_msg_write">
-                  <input type="text" class="write_msg" placeholder="Type a message" />
-                  <button class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                  <form action="/talk?id=<%= conversation.participants[1]._id %>" method="POST">
+                    <input type="textarea" name="message" class="write_msg" placeholder="Type a message" />
+                    <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                  </form>
                 </div>
               </div>
               
@@ -75,15 +77,16 @@ function loadDoc(convo) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var html = $.parseHTML(this.responseText);
+      var newForm  = html[13].getElementsByClassName("extract")[0].childNodes[9];
       var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
       $(".oldmesgs").html(newConvo);
+      $(".type_msg").html(newForm);
     }
   };
   xhttp.open("GET", "/searching?Cname="+convo, true);
   xhttp.send();
 }
-
 </script>
 
 
-<% include ./partials/footer %>
+<% include ../partials/footer %>

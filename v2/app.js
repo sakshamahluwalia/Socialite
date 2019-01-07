@@ -45,7 +45,7 @@ app.get("/home", function(req, res) {
     res.render("home");
 });
 
-app.get("/test", function(req, res) {
+app.get("/talk", function(req, res) {
     var convo;
     var convoId = req.query.convo;
     User.findById(req.user._id).populate({path: 'conversations', populate : { path: 'participants'}}).exec(function(err, user) {
@@ -56,7 +56,7 @@ app.get("/test", function(req, res) {
                 convo = user.conversations[0];
                 
                 // console.log("final convo is: "+ convoId + "\n" + convo);
-                res.render("test", {user: user, conversation: convo});
+                res.render("social/conversation", {user: user, conversation: convo});
                 
             } else {
                 Conversation.findById(convoId, function(err, conversation) {
@@ -66,26 +66,16 @@ app.get("/test", function(req, res) {
                         convo = conversation;
                     }
                     // console.log("final convo is: "+ convoId + "\n" + convo);
-                    res.render("test", {user: user, conversation: convo});
+                    res.render("social/conversation", {user: user, conversation: convo});
                 });
             }
         }
     });
 });
 
-// this page shows the contact and the message to send.
-app.get("/talk", function(req, res) {
-    User.findById(req.user._id).populate(["contacts", "conversations"]).exec(function(err, user) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.render("social/convo", {user: user});
-        }
-    });
-});
-
 // This route handles messaging functionality.
 app.post("/talk", function(req, res) {
+    
     var sender, reciever, newMessage, newConversation;
     
     // find the sender and populate its conversations.
@@ -93,7 +83,7 @@ app.post("/talk", function(req, res) {
 		sender = Sender;
 
 		// find the reciever and populate its conversations.
-        User.findById(req.body.id).populate(["conversations"]).exec(function(err, Reciever) {
+        User.findById(req.query.id).populate(["conversations"]).exec(function(err, Reciever) {
             reciever = Reciever;
             
 		    newMessage = { sender: sender, reciever: reciever, body: req.body.message, time: new Date()};
@@ -230,10 +220,12 @@ app.get("/logout", function(req, res){
    res.redirect("/");
 });
 
+
+// This route gathers and prepares data to send forward to talk.
 app.get("/:searching", function(req, res) {
 // _parsedUrl.Url.query => fname=Henry
     var string = encodeURIComponent(req._parsedUrl.query.substring(6));
-    res.redirect("/test?convo="+string);
+    res.redirect("/talk?convo="+string);
 });
 
 
