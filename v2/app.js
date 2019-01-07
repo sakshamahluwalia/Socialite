@@ -45,28 +45,8 @@ app.get("/home", function(req, res) {
     res.render("home");
 });
 
-// app.get("/populateConvo/:person", function(req, res) {
-    
-//     // console.log(req.url); // This will give us the name being searched.
-//     var person = req.url.substring(16);
-//     console.log(person);
-    
-//     // query the database and send the data using send().
-//     User.find({"username": person}).populate(["conversations"]).exec(function(err, reciever) {
-//         console.log(reciever);
-//         Conversation.find({ $or:
-//             [   
-//                 {"reciever": reciever._id, "sender": req.user._id},
-//                 {"sender": reciever._id, "reciever": req.user._id}
-//             ]
-//         }, function(err, convo) {
-//             console.log(convo);
-//             res.send(convo);
-//         });
-//     });
-// });
-
 app.get("/test", function(req, res) {
+    var convo = req.convo;
     User.findById(req.user._id).populate({path: 'conversations', populate : { path: 'participants'}}).exec(function(err, user) {
         if (err) {
             console.log(err);
@@ -74,7 +54,10 @@ app.get("/test", function(req, res) {
             // console.log(user);
             // console.log("\n--------------------------\n")
             // console.log(user.conversations);
-            res.render("test", {user: user});
+            if (req.convo == undefined) {
+                convo = user.conversations[0];
+            } 
+            res.render("test", {user: user, conversation: convo});
         }
     });
 });
