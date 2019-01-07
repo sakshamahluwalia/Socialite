@@ -1,0 +1,2 @@
+fix the test.ejs to show the new conversation. I got the route working see if we can 
+get the convo as response text if so change the html using javascript.

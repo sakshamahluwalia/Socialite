@@ -46,18 +46,29 @@ app.get("/home", function(req, res) {
 });
 
 app.get("/test", function(req, res) {
-    var convo = req.convo;
+    var convo;
+    var convoId = req.query.convo;
     User.findById(req.user._id).populate({path: 'conversations', populate : { path: 'participants'}}).exec(function(err, user) {
         if (err) {
             console.log(err);
         } else {
-            // console.log(user);
-            // console.log("\n--------------------------\n")
-            // console.log(user.conversations);
-            if (req.convo == undefined) {
+            if (convoId == undefined) {
                 convo = user.conversations[0];
-            } 
-            res.render("test", {user: user, conversation: convo});
+                
+                console.log("final convo is: "+ convoId + "\n" + convo);
+                res.render("test", {user: user, conversation: convo});
+                
+            } else {
+                Conversation.findById(convoId, function(err, conversation) {
+                    if (err) {
+                        console.log("error finding conversation");
+                    } else {
+                        convo = conversation;
+                    }
+                    console.log("final convo is: "+ convoId + "\n" + convo);
+                    res.render("test", {user: user, conversation: convo});
+                });
+            }
         }
     });
 });
@@ -94,7 +105,7 @@ app.post("/talk", function(req, res) {
 		            console.log("mssg error " + err);
 		        }
 		        
-		        console.log("New mssg is : \n" + newlyCreatedMessage + "\n<--------------------------->\n");
+		      //  console.log("New mssg is : \n" + newlyCreatedMessage + "\n<--------------------------->\n");
 
 	            // check if there exists a conversation between the reciever and sender.
 	            Conversation.find({participants: { $elemMatch: { _id: sender._id, _id: reciever._id  }}}, 
@@ -106,7 +117,9 @@ app.post("/talk", function(req, res) {
 	                
                     // convo is not in the records. Make a new convo and update database.
                     if (convo.length == 0) {
-                        console.log("no convo found.\n")
+                        
+                        // console.log("no convo found.\n")
+                        
                         newConversation = { participants: [sender, reciever], time: new Date};
                         
                         Conversation.create(newConversation, function(err, newlyCreatedConversation) {
@@ -115,7 +128,7 @@ app.post("/talk", function(req, res) {
                             newlyCreatedConversation.messages.push(newlyCreatedMessage);
                             newlyCreatedConversation.save();
                             
-                            console.log("new convo is: " + newlyCreatedConversation);
+                            // console.log("new convo is: " + newlyCreatedConversation);
                             
                             if (err) {
                                 console.log("\n error creating convo:" + err + "\n");
@@ -133,10 +146,14 @@ app.post("/talk", function(req, res) {
                         });
                         
                     } else {
-                        console.log("convo found.\n")
+                        
+                        // console.log("convo found.\n")
+                        
                         // this should return a unique convo between the two users.
                         Conversation.findByIdAndUpdate(convo[0]._id, {$push: {messages: newlyCreatedMessage}}, {new: true}, function(err, updatedConversation) {
-                            console.log("updated convo is: \n" + updatedConversation);
+                            
+                            // console.log("updated convo is: \n" + updatedConversation);
+                            
                             updatedConversation.save();
                         });
                     }
@@ -186,7 +203,8 @@ app.post("/login", passport.authenticate("local",
     {
         successRedirect: "/home",
         failureRedirect: "/login"
-    }));
+    }
+));
 
 // The sign up page route and logic routes
 app.get("/register", function(req, res) {
@@ -210,6 +228,12 @@ app.post("/register", function(req, res) {
 app.get("/logout", function(req, res){
    req.logout();
    res.redirect("/");
+});
+
+app.get("/:searching", function(req, res) {
+// _parsedUrl.Url.query => fname=Henry
+    var string = encodeURIComponent(req._parsedUrl.query.substring(6));
+    res.redirect("/test?convo="+string);
 });
 
 
