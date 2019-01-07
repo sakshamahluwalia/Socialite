@@ -27,5 +27,21 @@ var UserSchema = new mongoose.Schema({
     ]
 });
 
+var MessageSchema = new mongoose.Schema({
+    sender: [UserSchema],
+    reciever: [UserSchema],
+    body: String,
+    time: Date
+});
+
+var ConversationSchema = new mongoose.Schema({
+    participants: [UserSchema],
+    messages: [MessageSchema],
+    time: Date
+});
+
 UserSchema.plugin(passportLocalMongoose);
-module.exports = mongoose.model("User", UserSchema);
+
+module.exports =    mongoose.model('User', UserSchema), 
+                    mongoose.model('Message', MessageSchema),
+                    mongoose.model('Conversation', ConversationSchema);

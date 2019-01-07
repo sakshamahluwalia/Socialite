@@ -1,4 +1,4 @@
-<% include ../partials/header %>
+<% include ../navbars/standardnavbar %>
 
 <div class="container" id="convoPage">
   <div class="row">
@@ -52,11 +52,10 @@
   </div>
   <div class="col-sm-3 col-sm-offset-4 frame">
     <% user.conversations.forEach(function(convo) { %>
-        <ul id="chat"> <%= convo.receiver %> </ul>
         <li style="width:100%">
           <% convo.messages.forEach(function(message) { %>
           
-            <p> <%= message %> </p> 
+            <p> <%= message.body %> </p> 
    
           <% }); %>
           <p><small> <%= convo.date %> </small></p> 

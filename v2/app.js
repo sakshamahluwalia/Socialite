@@ -4,10 +4,10 @@ var express         = require("express"),
     mongoose        = require("mongoose"),
     passport        = require("passport"),
     LocalStrategy   = require("passport-local"),
-    User            = require("./models/user"),
-    Message         = require("./models/message"),
-    Conversation    = require("./models/conversation");
-    
+    Schema          = require("./models/Schema"),
+    User            = mongoose.model('User'),
+    Message         = mongoose.model('Message'),
+    Conversation    = mongoose.model('Conversation');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -45,46 +45,39 @@ app.get("/home", function(req, res) {
     res.render("home");
 });
 
-app.get("/populateConvo/:person", function(req, res) {
+// app.get("/populateConvo/:person", function(req, res) {
     
-    // console.log(req.url); // This will give us the name being searched.
-    var person = req.url.substring(16);
-    console.log(person);
+//     // console.log(req.url); // This will give us the name being searched.
+//     var person = req.url.substring(16);
+//     console.log(person);
     
-    // query the database and send the data using send().
-    User.find({"username": person}).populate(["conversations"]).exec(function(err, reciever) {
-        console.log(reciever);
-        Conversation.find({ $or:
-            [   
-                {"reciever": reciever._id, "sender": req.user._id},
-                {"sender": reciever._id, "reciever": req.user._id}
-            ]
-        }, function(err, convo) {
-            console.log(convo);
-            res.send(convo);
-        });
-    });
-}); 
-
-// this page serves as a test page for conversations.
-// app.get("/talk", function(req, res) {
-    
-//     // find the user using the id
-//     User.findById(req.user.id).populate(["contacts", "conversations"]).exec(function(err, user) {
-//         user.conversations.forEach(function(convo) {
-//             Conversation.findById(convo._id).populate(["messages"]).exec(function(err, conversation) {
-//                 // populate sender and reciever.
-//                 conversation.messages.forEach(function(message) {
-//                     Message.findById(message._id).populate(["sender", "reciever"]).exec(function(err, fullMessage) {
-                        
-//                     });
-//                 });
-//             });
+//     // query the database and send the data using send().
+//     User.find({"username": person}).populate(["conversations"]).exec(function(err, reciever) {
+//         console.log(reciever);
+//         Conversation.find({ $or:
+//             [   
+//                 {"reciever": reciever._id, "sender": req.user._id},
+//                 {"sender": reciever._id, "reciever": req.user._id}
+//             ]
+//         }, function(err, convo) {
+//             console.log(convo);
+//             res.send(convo);
 //         });
-//         // res.render("test", {User: user});
-//         res.render("social/convo", {user: user});
 //     });
 // });
+
+app.get("/test", function(req, res) {
+    User.findById(req.user._id).populate({path: 'conversations', populate : { path: 'participants'}}).exec(function(err, user) {
+        if (err) {
+            console.log(err);
+        } else {
+            // console.log(user);
+            // console.log("\n--------------------------\n")
+            // console.log(user.conversations);
+            res.render("test", {user: user});
+        }
+    });
+});
 
 // this page shows the contact and the message to send.
 app.get("/talk", function(req, res) {
@@ -97,6 +90,7 @@ app.get("/talk", function(req, res) {
     });
 });
 
+// This route handles messaging functionality.
 app.post("/talk", function(req, res) {
     var sender, reciever, newMessage, newConversation;
     
@@ -117,27 +111,25 @@ app.post("/talk", function(req, res) {
 		            console.log("mssg error " + err);
 		        }
 		        
-		        console.log("New mssg is : \n" + newlyCreatedMessage);
+		        console.log("New mssg is : \n" + newlyCreatedMessage + "\n<--------------------------->\n");
 
 	            // check if there exists a conversation between the reciever and sender.
-	            Conversation.find({ participants: [reciever, sender] }, function(err, convo) {
-
+	            Conversation.find({participants: { $elemMatch: { _id: sender._id, _id: reciever._id  }}}, 
+	            function(err, convo) {
 	                if (err) {
 	                    console.log("\n error is:" + err + "\n");
 	                }
 	                
-	                console.log(convo);
+	                
                     // convo is not in the records. Make a new convo and update database.
                     if (convo.length == 0) {
-
+                        console.log("no convo found.\n")
                         newConversation = { participants: [sender, reciever], time: new Date};
-                        
-                        console.log(newConversation);
                         
                         Conversation.create(newConversation, function(err, newlyCreatedConversation) {
                             // newlyCreatedConversation.participants.push(sender);
                             // newlyCreatedConversation.participants.push(reciever);
-                            newlyCreatedConversation.messages.push(newMessage.id);
+                            newlyCreatedConversation.messages.push(newlyCreatedMessage);
                             newlyCreatedConversation.save();
                             
                             console.log("new convo is: " + newlyCreatedConversation);
@@ -157,10 +149,11 @@ app.post("/talk", function(req, res) {
                             });
                         });
                         
-                    } else { 
+                    } else {
+                        console.log("convo found.\n")
                         // this should return a unique convo between the two users.
                         Conversation.findByIdAndUpdate(convo[0]._id, {$push: {messages: newlyCreatedMessage}}, {new: true}, function(err, updatedConversation) {
-                            console.log(updatedConversation);
+                            console.log("updated convo is: \n" + updatedConversation);
                             updatedConversation.save();
                         });
                     }
