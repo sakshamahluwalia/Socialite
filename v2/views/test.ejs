@@ -6,7 +6,7 @@
               <h4>Recent</h4>
             </div>
 
-      <div>
+      <div class="extract">
         
               <div class="headind_srch">
                 <div class="srch_bar">
@@ -30,9 +30,10 @@
               <% }); %>
 
               <div class="oldmesgs">
+
             <% conversation.messages.forEach(function(message) { %>
 
-            <% if (message.sender[0]._id == user.id) { %>
+                <% if (message.sender[0]._id == user.id) { %>
 
                   <div class="outgoing_msg">
                     <div class="sent_msg">
@@ -41,7 +42,7 @@
                     </div>
                   </div>
 
-            <% } else { %>
+                <% } else { %>
 
                   <div class="incoming_msg">
                     <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
@@ -52,11 +53,10 @@
                       </div>
                     </div>
                   </div>
-            <% } }); %>
+
+                <% } }); %>
       
               </div>
-              
-              <div class="newmesgs"></div>
                 
               <div class="type_msg">
                 <div class="input_msg_write">
@@ -74,7 +74,9 @@ function loadDoc(convo) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      console.log(JSON.parse(this.responseText))
+      var html = $.parseHTML(this.responseText);
+      var newConvo =  html[13].getElementsByClassName("extract")[0].childNodes[7];
+      $(".oldmesgs").html(newConvo);
     }
   };
   xhttp.open("GET", "/searching?Cname="+convo, true);

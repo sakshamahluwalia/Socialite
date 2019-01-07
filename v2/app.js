@@ -55,7 +55,7 @@ app.get("/test", function(req, res) {
             if (convoId == undefined) {
                 convo = user.conversations[0];
                 
-                console.log("final convo is: "+ convoId + "\n" + convo);
+                // console.log("final convo is: "+ convoId + "\n" + convo);
                 res.render("test", {user: user, conversation: convo});
                 
             } else {
@@ -65,7 +65,7 @@ app.get("/test", function(req, res) {
                     } else {
                         convo = conversation;
                     }
-                    console.log("final convo is: "+ convoId + "\n" + convo);
+                    // console.log("final convo is: "+ convoId + "\n" + convo);
                     res.render("test", {user: user, conversation: convo});
                 });
             }
